@@ -1,0 +1,37 @@
+-- Power BI DAX measures. Load Players and PlayerSeason as tables first.
+-- The Players table is one row per shortlisted player with a PlayerID and Category.
+
+Shortlisted Players = DISTINCTCOUNT(Players[PlayerID])
+Mean Pressure Rating = AVERAGE(Players[PressureRating])
+Pressure Matches = SUM(Players[PressureMatches])
+Pressure Opportunities = SUM(Players[PressureOpportunities])
+Scenario Stability % = AVERAGE(Players[Top10ScenarioShare])
+Observed Runs = SUM(Players[ObservedRuns])
+High Pressure Runs = SUM(Players[HighPressureRuns])
+
+-- Recalculate rate from visible base fields, not average of player rates.
+Batter Strike Rate Proxy =
+DIVIDE(
+    CALCULATE(SUM(Players[ObservedRuns]), Players[Category] = "Batter") * 100,
+    CALCULATE(SUM(Players[ObservedOpportunities]), Players[Category] = "Batter")
+)
+
+Bowling Batter-Runs Per Six =
+DIVIDE(
+    CALCULATE(SUM(Players[ObservedRuns]), Players[Category] = "Bowler") * 6,
+    CALCULATE(SUM(Players[ObservedOpportunities]), Players[Category] = "Bowler")
+)
+
+Season Pressure Value Per Six =
+DIVIDE(SUM(PlayerSeason[PressureValue]) * 6, SUM(PlayerSeason[PressureOpportunities]))
+
+Champion Batting Runs Per Six =
+DIVIDE(SUM(ChampionsBenchmark[BattingRuns]) * 6, SUM(ChampionsBenchmark[BattingOpportunities]))
+
+Champion Batter-Runs Conceded Per Six =
+DIVIDE(SUM(ChampionsBenchmark[BatterRunsConceded]) * 6, SUM(ChampionsBenchmark[BowlingLegalBalls]))
+
+Champion Credited Wickets Per 100 =
+DIVIDE(SUM(ChampionsBenchmark[BowlerCreditedWickets]) * 100, SUM(ChampionsBenchmark[BowlingLegalBalls]))
+
+-- IMPORTANT: these are proxies, not official bowling economy or official innings totals.
